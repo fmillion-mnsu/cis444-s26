@@ -2,6 +2,13 @@
 
 This document outlines the semester-long project for CIS 444/544 Data Analytics. This is a living document and changes, updates and expansions will be published throughout the semester. See the [Changes](#changes) section for the current list of updates over time.
 
+## Contents
+
+* [Scope](#scope)
+* Sprints:
+  * [Sprint 1: Discovery](#sprint-1-discovery)
+  * [Sprint 2: MongoDB, ETL, and DW Schemas](#sprint-2-mongodb-nosql-and-star-schemas)
+
 ## Scope
 
 The goal for this project is to build a *comprehensive data analytics system* for a fictional organization. This project will consist of multiple components and skills:
@@ -99,3 +106,45 @@ Add the following to your **final project portfolio**:
 * **Query List 1** -- your discovery queries with documentation as described above
 * **Unanswerable questions** -- at least two business questions you can't yet answer, with explanation
 * **Sprint documentation** -- standup notes, sprint planning notes, and retrospective notes
+
+### Sprint 2: MongoDB, NoSQL and Star Schemas
+
+In Sprint 2, you will learn about MongoDB and similar schemaless document databases, and you will form a process for copying your data from your SQL Server into MongoDB.
+
+You will also begin designing and implementing your star schemas. Start with choosing **two** of your query list business scenarios, and devise **star schemas** that would specifically support those business questions. 
+
+> [!TIP]
+> Remember: Star schemas are generally **de-normalized** by design - you should plan to reshape your existing data in such a way to maximize *performance* at the expense of storage size optimization.
+
+You will:
+
+* ***Grad Students Lead:*** Use Python (or another programming language) to write a simple **ETL tool** that will automatically migrate *all* data for your primary database (all tables and rows) from SQL Server to MongoDB in a *new database*. (Your MongoDB instance already has a few databases - especially 'gift_shops' - that you will need for later steps.)
+* Convert your Query List 1 queries into MongoDB aggregation pipelines. This will be Query List 2.
+* Create appropriate indexes for your queries to ensure maximum performance
+* Explore the `gift_shops` database which has been generated to match with your main Hotel database. Create an ERD for the database.
+  * See important notes on this below!
+* Design and create ERDs for at least two star or snowflake schemas based on your Query List 1 business questions *and/or* new questions you develop with the new data you have available in MongoDB.
+* Create a *separate* database in your Microsoft SQL Server instance for your data warehouse. *Don't* create tables within the `Hotel` database! In this database, create tables for your star/snowflake schemas. 
+
+### MongoDB ERDs
+
+Since MongoDB is not a relational database, you might ask "how can I list out entities? And what do I do about inconsitent fields?"
+
+Answer: You can make assumptions about the dataset. There are only a couple of instances where a field is optional in our data. 
+
+Additionally, *you need to essentially synthesize entities* for nested data objects in MongoDB collections. You should look at the data and *imagine* what you'd need to do if you wanted to make it into purely relational data, and then design your ERD accordingly.
+
+Example: If a "user" table has a "comments" field that contains many objects, then "comment" would become a separate entity in your ERD, *even though it's not stored separately in the database*!
+
+The challenge for you is to *understand the data* and *model it* in your head as if it were to be stored in a relational database. This knowledge will help you immensely when we move to Sprint 3 and you are moving data from MongoDB to SQL Server!
+
+### Deliverables
+
+Deliverables to include in your **final project portfolio** include:
+
+* "ERD" diagrams for MongoDB `gift_shops` database
+* Query List 2 (MongoDB) aggregation queries
+* Code for your ETL tool for migrating from SQL Server to MongoDB
+* A description of, and/or the code for, indexes you create on your collections for performance optimization
+* ERD diagrams for star schemas
+* SQL code for generating your data warehouse tables (you can use SSMS's script generation for this)
