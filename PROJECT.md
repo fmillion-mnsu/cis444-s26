@@ -121,7 +121,7 @@ You will:
 * ***Grad Students Lead:*** Use Python (or another programming language) to write a simple **ETL tool** that will automatically migrate *all* data for your primary database (all tables and rows) from SQL Server to MongoDB in a *new database*. (Your MongoDB instance already has a few databases - especially 'gift_shops' - that you will need for later steps.)
 * Convert your Query List 1 queries into MongoDB aggregation pipelines. This will be Query List 2.
 * Create appropriate indexes for your queries to ensure maximum performance
-* Explore the `gift_shops` database which has been generated to match with your main Hotel database. Create an ERD for the database.
+* Explore the `Hotel` database which has been generated to match with your main Hotel database. Create an ERD for the database.
   * See important notes on this below!
 * Design and create ERDs for at least two star or snowflake schemas based on your Query List 1 business questions *and/or* new questions you develop with the new data you have available in MongoDB.
 * Create a *separate* database in your Microsoft SQL Server instance for your data warehouse. *Don't* create tables within the `Hotel` database! In this database, create tables for your star/snowflake schemas. 
