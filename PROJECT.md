@@ -8,6 +8,7 @@ This document outlines the semester-long project for CIS 444/544 Data Analytics.
 * Sprints:
   * [Sprint 1: Discovery](#sprint-1-discovery)
   * [Sprint 2: MongoDB, ETL, and DW Schemas](#sprint-2-mongodb-nosql-and-star-schemas)
+  * [Sprint 3: Data Warehousing - Populating your Star Schemas](#sprint-3-data-warehousing---populating-your-star-schemas)
 
 ## Scope
 
@@ -148,3 +149,120 @@ Deliverables to include in your **final project portfolio** include:
 * A description of, and/or the code for, indexes you create on your collections for performance optimization
 * ERD diagrams for star schemas
 * SQL code for generating your data warehouse tables (you can use SSMS's script generation for this)
+
+## Sprint 3: Data Warehousing - Populating Your Star Schemas
+
+In Sprint 3, you will bring your data warehouse to life. The star schemas you designed in Sprint 2 are empty tables - now you'll build the ETL pipelines to populate them with real data from both of your source systems. You'll also begin thinking across data boundaries by formulating business questions that *require* data from both the hotel operations database (SQL Server) and the gift shop database (MongoDB).
+
+> [!NOTE]
+> This is a shorter sprint - approximately 10 calendar days. The scope is intentionally focused: get your data warehouse populated and working, and lay the groundwork for cross-source analytics in Sprint 4. Don't try to do everything at once. A working pipeline for one star schema is worth more than a half-finished pipeline for three.
+
+You will:
+
+* Build a **Python (or other language of your choice) ETL pipeline** that extracts data from your source systems (SQL Server and MongoDB), transforms it, and loads it into your SQL Server data warehouse star schemas
+* **Populate all star schemas** you designed in Sprint 2, including appropriate dimension and fact tables
+* Formulate **at least two new business questions** that require data from both sources
+* Create **at least one new star schema** that integrates data from *both* the hotel operations database and the gift shop database which answers the business questions you selected in the previous point. 
+
+  > [!NOTE]
+  You need not create a star schema for each of your new business questions if you can answer both of them with one star schema. However, it's generally the case that each business question will use its own *fact table* - *dimensions* can be shared across fact tables however!
+
+* Design and implement a **date dimension table** for your data warehouse based on one of your queries. If none of your queries involve dates, you can use dates in the new questions you developed in the previous points.
+* Write **Query List 3** - queries against your *populated data warehouse* (*NOT* the source databases!) that answer your business questions
+
+Below are details on the various aspects of this sprint.
+
+### Date Dimension
+
+Your data warehouse should include a **date dimension table** - a table with one row per day, hour, minute, etc. (per whatever granularity your analysis requires) that serves as a shared dimension across your fact tables.
+
+Instead of storing raw dates or timestamps directly in your fact tables, your fact tables should reference the date dimension via a foreign key. This is standard practice in dimensional modeling and provides several advantages: consistent date handling across all facts, easy filtering by month/quarter/year/day-of-week, and the ability to add calendar attributes (e.g., holidays, fiscal periods) without modifying fact tables.
+
+> [!TIP]
+> Your date dimension should cover the full range of dates present in your data. Each row represents a single day and should include useful derived attributes - for example: year, month, day, day of week, and quarter. You can add more (week number, month name, is_weekend, etc.) as your analysis needs dictate.
+>
+> You can generate and populate this table as part of your ETL process - Python's `datetime` library makes it straightforward to generate a row for every day in a range.
+
+### ETL Pipeline
+
+Build a Python-based ETL tool that populates your data warehouse. Your pipeline must:
+
+* **Extract** data from both source systems:
+    * Hotel operations data from SQL Server (or from its MongoDB copy, if you prefer)
+    * Gift shop data from MongoDB
+  > [!NOTE]
+  > You can use separate ETL tools for each business question if you prefer. The requirement is that you must write at least *one* ETL process that involves source data from both databases - this will naturally be the business questions you formed during this sprint for Query List 3. 
+  >
+  > In other words, it is *not* required that *all* ETL pipelines you design source data from both databases. Source data from the appropriate place given your business questions.
+* **Transform** the data to fit your star schema design:
+    * Denormalize related tables/documents into fact table records
+    * Populate dimension tables with distinct values
+    * Create surrogate keys where needed
+    * Handle missing or null values appropriately
+    * Map date/time values to your date dimension
+* **Load** the transformed data into your SQL Server data warehouse tables
+
+Your ETL should perform a **full refresh** - clear and reload the data warehouse from scratch. We'll explore incremental strategies in later sprints.
+
+> [!IMPORTANT]
+> **ETL Efficiency**
+>
+> As your ETL now spans two different database systems, think carefully about how your code interacts with each source. Your ETL should be *reasonably efficient* - meaning you should avoid obviously wasteful patterns.
+>
+> For example:
+> * Don't execute a separate MongoDB query for every single row you read from SQL Server. Pull larger datasets into memory and work with them in Python.
+> * Don't insert rows into SQL Server one at a time without batching - use transactions or bulk operations.
+> * Don't query the same unchanged data repeatedly when you could cache it locally in a variable or data structure.
+>
+> You don't need to obsess over optimization, but your ETL documentation should include a brief explanation of your **data flow strategy** - how data moves through your pipeline and why you structured it the way you did.
+
+#### Graduate Students: ETL Ownership
+
+Graduate students should take the lead on writing and structuring the ETL code. All team members should contribute to the *logic and design* of transformations - deciding what gets denormalized, how keys are mapped, how nulls are handled - but graduate students are responsible for the implementation and code quality.
+
+### Cross-Source Business Questions
+
+Formulate **at least two new business questions** that *cannot* be answered using only one data source. These questions must require combining data from both the hotel operations database and the gift shop database.
+
+For each question, document:
+
+1. **The business question** in plain English
+2. **What data is needed** from each source (hotel operations and gift shop)
+3. **How the data connects** - what fields or logic link the two sources together (think about what's shared between them and what isn't!)
+
+> [!TIP]
+> Consider questions like:
+> * Is there a relationship between length of stay and gift shop spending at the same property?
+> * Do properties with higher average room rates also see higher gift shop revenue?
+> * Are gift shop purchase patterns different for hotel guests vs. non-guest visitors?
+>
+> Remember: customers are *partially* duplicated across the two systems with no direct ID link. Part of your challenge - now and in Sprint 4 - is figuring out how to reason about data that doesn't neatly join together.
+
+Design and implement **at least one new star schema** to support these cross-source questions. This schema should have fact table(s) that incorporate data from both the hotel and gift shop systems. You may share dimension tables (e.g., a property dimension, a date dimension) across your existing and new schemas.
+
+### Query List 3: Data Warehouse Queries
+
+Write queries against your **populated data warehouse** that demonstrate the value of your star schema design. Your query list should include:
+
+* **At least one query per star schema** - showing that each schema is populated and functional
+* **At least one query** that answers one of your new cross-source business questions
+* For each query, include:
+    * The business question it answers
+    * The SQL query
+    * A brief interpretation of the results
+
+> [!NOTE]
+> Compare the complexity of your data warehouse queries to the equivalent queries you'd need to write against the raw source data. One of the key benefits of a well-designed star schema is simpler, more readable analytical queries - your Query List 3 should demonstrate this.
+
+### Deliverables
+
+Add the following to your **final project portfolio**:
+
+* **Date dimension table** - DDL and/or the ETL code that generates and populates it
+* **Python ETL pipeline** source code, including:
+    * Code for populating all star schemas (Sprint 2 schemas + new cross-source schema)
+    * A brief written explanation of your data flow strategy (how data moves through the pipeline, what's batched or cached, and why)
+* **Cross-source business questions** - at least two documented questions with the data requirements and linkage explanation described above
+* **New star schema ERD** - for your cross-source schema(s)
+* **Query List 3** - data warehouse queries as described above
+* **Sprint documentation** - sprint planning/retrospective notes and standup notes
