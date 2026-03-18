@@ -9,6 +9,7 @@ This document outlines the semester-long project for CIS 444/544 Data Analytics.
   * [Sprint 1: Discovery](#sprint-1-discovery)
   * [Sprint 2: MongoDB, ETL, and DW Schemas](#sprint-2-mongodb-nosql-and-star-schemas)
   * [Sprint 3: Data Warehousing - Populating your Star Schemas](#sprint-3-data-warehousing---populating-your-star-schemas)
+  * [Sprint 4: ETL Optimization, Visualization and New Data Integration](#sprint-4-etl-optimization-visualization-and-new-data-integration)
 
 ## Scope
 
@@ -266,3 +267,166 @@ Add the following to your **final project portfolio**:
 * **New star schema ERD** - for your cross-source schema(s)
 * **Query List 3** - data warehouse queries as described above
 * **Sprint documentation** - sprint planning/retrospective notes and standup notes
+
+## Sprint 4: ETL Optimization, Visualization, and New Data Integration
+
+Sprint 4 is a transitional sprint with two phases. In the first phase, you will improve your existing ETL pipelines and begin learning a visualization tool. In the second phase, new data will become available in your source database -- employee records, payroll, and property amenities, as well as additional data added to your existing transaction tables -- and you will integrate this data into your data warehouse using **incremental ETL** rather than rebuilding from scratch.
+
+> [!IMPORTANT]
+> **New data availability:** The employee and amenity data along with new data adding onto hotel and gift store transactions and customers will be added to your source databases during this sprint. Your instructor will announce the exact date when the new data is available. **Do not wait for this data** -- there is significant work to do in Phase 1 with your existing data. Plan your sprint accordingly.
+>
+> No new properties will be added during this new data load, however new *customers* may be created in both gift shop and hotel databases.
+
+The two phases are:
+
+**Phase 1 (Week 1):** ETL optimization and visualization tool introduction -- uses your *existing* data only
+
+**Phase 2 (Week 2):** New data integration using incremental ETL techniques
+
+---
+
+### Phase 1: ETL Optimization and Visualization
+
+#### ETL Optimization
+
+Your Sprint 3 ETL pipeline works -- but how *well* does it work? In a production environment, ETL jobs that take too long can miss processing windows, block downstream reports, and frustrate stakeholders waiting for updated data. As a rule of thumb, most ETLs are expected to complete within short maintenance windows - often hours or even minutes. Does your current ETL tool run within an hour, or does it need to be left running overnight to even make any progress?
+
+In this phase, you will audit and improve your existing ETL pipeline's performance.
+
+You will:
+
+* **Benchmark your current ETL** -- measure and record how long your full pipeline takes to run end-to-end. Break this down by stage if possible (extraction, transformation, loading).
+* **Identify bottlenecks** -- examine your code for common performance issues:
+    * Are you inserting rows one at a time instead of using bulk operations or batch inserts?
+    * Are you running individual queries inside loops when you could pull larger datasets into memory?
+    * Are you opening and closing database connections repeatedly instead of reusing them?
+    * Are you not using transactions, which can cause each write of a row to auto-commit individually?
+* **Implement improvements** -- refactor your ETL code to address the issues you find. Common strategies include:
+    * Batching inserts using e.g. `executemany()` or equivalent bulk operations
+    * Wrapping groups of writes in explicit transactions
+    * Caching reference data (e.g., dimension lookups) in Python dictionaries rather than querying for each row
+    * Pulling source data in bulk rather than row-by-row
+* **Benchmark again** -- measure performance after your changes and document the improvement
+
+> [!TIP]
+> Even if your ETL is already reasonably fast, go through this exercise. You should be able to articulate *why* it's fast -- what design decisions you made that avoid common pitfalls. If you genuinely can't find anything to improve, document the strategies you're already using and explain why they're effective.
+
+Document your optimization work, including before/after timings and a description of what you changed and why. This goes in your sprint journal.
+
+#### Graduate Students: Optimization Leadership
+
+Graduate students can lead the optimization effort, including profiling the code, identifying bottlenecks, and implementing the refactored pipeline. All team members should participate in benchmarking and documenting the results.
+
+#### Getting Started with Visualization
+
+A data warehouse full of well-structured data is only valuable if people can *see* and *understand* what it contains. In this phase, you will set up a visualization tool and create your first dashboard -- a small proof-of-concept to get your feet wet before building comprehensive dashboards in Sprints 5 and 6.
+
+**Tool options:**
+
+You may use one of the following:
+
+* **Power BI Desktop** (recommended for most teams) -- widely used in industry, connects directly to SQL Server, and provides a drag-and-drop interface for building dashboards. Download Power BI Desktop (Report Server edition) and connect it to your data warehouse database.
+    * *Mac users:* Power BI Desktop runs on Windows. You can use the ARM version of Windows or a cloud VM. Talk to me if you need help with access.
+* **Python-based dashboards** (e.g., Streamlit, Plotly Dash) -- if your team is more comfortable working in Python, you may build your dashboards programmatically. This approach lets you reuse your existing database connection code and gives you full control over the presentation, though it requires more coding effort than a drag-and-drop tool. You still will want to implement the *dynamic* aspects of dashboards - the ability to "drill down" or filter the views with the dashboard's visualizations updating dynamically.
+
+> [!NOTE]
+> Both options -- PowerBI and Python tools -- have advantages and disadvantages. Power BI gives you experience with a tool you'll likely encounter in industry, while Python-based dashboards let you leverage skills you've already developed. Choose the tool that best fits your team's strengths, but commit to one -- you'll be using it through the final presentation.
+>
+> If you have very strong Python programmers on your team, you may enjoy the challenge of working with a Python-based dashboard tool. If not, PowerBI is recommended as its drag-and-drop interface and easy design tooling will allow you to intuitively develop your dashboard with minimal need for code.
+>
+> Other commercial BI tools (Tableau, Looker, etc.) should **not** be used for this project due to licensing and grading access constraints.
+
+**For this sprint**, your visualization deliverable is intentionally small:
+
+* Connect your chosen tool to your data warehouse
+* Create **one dashboard** with **one or two visuals** (charts, graphs, tables -- whatever makes sense for the data)
+* The visuals should answer or illustrate one of your existing business questions from a previous query list
+* Take a screenshot for your portfolio
+
+The goal is to prove you can get the tool working and produce *something* visual. Don't spend excessive time on aesthetics at this stage -- that comes in Sprints 5 and 6, where you will build the comprehensive dashboards you'll present to the class.
+
+---
+
+### Phase 2: New Data Integration and Incremental ETL
+
+Once the new data is available (by the week of March 23rd), your source database will have been expanded with several new entities:
+
+* **Employees** -- staff records for the hotel chain, including positions and department assignments
+* **Payroll** -- biweekly paycheck records with basic tax withholding modeling (federal and state income tax)
+* **Amenities** -- specific facilities at each property (e.g., swimming pool, fitness center, business center, restaurant). Note that gift shops, which you've already been working with via MongoDB, are also represented as amenities in this schema.
+* Additional data for hotel and gift shop activity - your previous database ends at the end of year 2024; the addition will insert new data for part of year 2025. 
+
+> [!NOTE]
+> The new data extends the **time range** of your existing data. Your source database now contains records beyond the original date boundaries. This is important -- it means a full refresh of your data warehouse would need to process *all* the old data again plus the new data. That's exactly the problem incremental ETL solves.
+
+#### Exploring the New Data
+
+Before building anything, take time to understand what's been added:
+
+* Explore the new tables and relationships
+* Update your ERD to include the new entities
+* Consider what business questions the employee and payroll data could answer -- think about perspectives like staffing levels relative to occupancy, labor cost analysis by property, or seasonal hiring patterns
+
+#### Incremental ETL
+
+In Sprint 3, your ETL performed a **full refresh** -- it cleared the data warehouse and reloaded everything from scratch. This worked fine when your dataset was manageable, but it doesn't scale. As data grows, full refreshes become slower, riskier, and wasteful when most of the data hasn't changed. (Imagine how long it would take if we had 10 years of data, and if our hotel chain was of the scale of hospitality giants like Wyndham Hotels or Marriott. These chains manage *thousands* of properties - yours only has around 250-300 properties - with *millions* of stays per day. Could your ETL system handle processing billions of records every single day?)
+
+In this phase, you will modify your ETL pipeline to support **incremental loading** -- processing only *new or changed* data since the last ETL run.
+
+To do this, you need a way to track what has already been loaded. Design and implement an **ETL metadata mechanism** -- a way for your pipeline to know what it loaded last time so it can determine what's new. A common approach is an ETL metadata table (sometimes called something like `__ETLMetadata` or `__ETLLog`) in your data warehouse that records information about past loads.
+
+> [!IMPORTANT]
+> **Be thoughtful about how you determine "what's new."** Not all tables have dates that can be used to find recent records. A hotel adding a new swimming pool, for instance, isn't a time-series event -- it's a new row in a reference table. Your incremental strategy needs to handle different types of changes, not just "records newer than the last load date."
+>
+> Document your approach in your sprint journal: what metadata you track, how you determine what's new for each table, and what assumptions or limitations your approach has.
+
+Your incremental ETL should:
+
+* Be able to determine what data is new or changed since the last successful load
+* Process only that new/changed data and integrate it into your existing data warehouse
+* Extend your date dimension to cover any new date ranges in the expanded data
+* Handle the new employee, payroll, and amenity tables in addition to the existing hotel and gift shop data
+
+> [!TIP]
+> You don't need to solve every edge case perfectly. A reasonable first approach that works for the common cases -- new records appearing in your source systems -- is sufficient. Document known limitations honestly in your sprint journal.
+
+#### Graduate Students: Incremental ETL Design
+
+Graduate students can lead the design and implementation of the incremental ETL mechanism, including the metadata tracking approach and the logic for determining what's new. All team members should participate in deciding the strategy and documenting the design decisions.
+
+#### New Business Questions
+
+Formulate **at least two new business questions** that leverage the employee and/or payroll data, potentially in combination with your existing hotel operations and gift shop data. For each question, document:
+
+1. **The business question** in plain English
+2. **What data is needed** and from which source tables
+3. **How this question could inform business decisions** -- why would an executive care about the answer?
+
+> [!TIP]
+> Think about questions that cross domain boundaries:
+> * Is there a relationship between staffing levels and customer satisfaction or revenue?
+> * How do labor costs compare across properties relative to their revenue?
+> * Do properties with certain amenities generate more revenue per room than those without?
+> * Are there seasonal patterns in staffing that align (or don't align) with occupancy patterns?
+>
+> Remember that you are adding *new* business questions - your final dashboard will give you a chance to incorporate *all* of the business questions you've come up with throughout the project!
+
+#### New Star Schema
+
+Design and implement **at least one new star schema** that incorporates the employee/payroll and/or amenity data. This schema should support your new business questions. As before, you may share dimension tables (e.g., property dimension, date dimension) across schemas.
+
+Your incremental ETL pipeline should populate this new schema along with your existing ones.
+
+### Deliverables
+
+Add the following to your **final project portfolio**:
+
+* **ETL optimization documentation** -- before/after benchmarks, description of what you changed, and explanation of why it improved performance (or, if already efficient, documentation of the strategies in place)
+* **Visualization proof-of-concept** -- a screenshot of your first dashboard visual(s), including a note about which tool you chose and which business question the visual addresses
+* **Updated ERD** -- your entity-relationship diagram updated to include the new employee, payroll, and amenity entities
+* **Incremental ETL pipeline** source code, including:
+    * Your metadata tracking mechanism (table DDL, code, or both)
+    * A written explanation of how your pipeline determines what data is new or changed for different types of tables
+* **New business questions** -- at least two documented questions leveraging the new data, with the documentation described above
+* **New star schema ERD** -- for your employee/payroll/amenity schema(s)
+* **Sprint documentation** -- sprint planning/retrospective notes and standup notes
