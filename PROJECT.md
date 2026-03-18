@@ -120,7 +120,7 @@ You will also begin designing and implementing your star schemas. Start with cho
 
 You will:
 
-* ***Grad Students Lead:*** Use Python (or another programming language) to write a simple **ETL tool** that will automatically migrate *all* data for your primary database (all tables and rows) from SQL Server to MongoDB in a *new database*. (Your MongoDB instance already has a few databases - especially 'gift_shops' - that you will need for later steps.)
+* ***Grad Students Lead:*** Use Python (or another programming language) to write a simple **ETL tool** that will automatically migrate *all* data for your primary database (all tables and rows) from SQL Server to MongoDB in a *new database*. (Your MongoDB instance already has a few databases - especially 'hotel' in MongoDB - that you will need for later steps.)
 * Convert your Query List 1 queries into MongoDB aggregation pipelines. This will be Query List 2.
 * Create appropriate indexes for your queries to ensure maximum performance
 * Explore the `Hotel` database which has been generated to match with your main Hotel database. Create an ERD for the database.
@@ -144,7 +144,7 @@ The challenge for you is to *understand the data* and *model it* in your head as
 
 Deliverables to include in your **final project portfolio** include:
 
-* "ERD" diagrams for MongoDB `gift_shops` database
+* "ERD" diagrams for MongoDB `hotel` database in MongoDB
 * Query List 2 (MongoDB) aggregation queries
 * Code for your ETL tool for migrating from SQL Server to MongoDB
 * A description of, and/or the code for, indexes you create on your collections for performance optimization
