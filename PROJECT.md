@@ -10,6 +10,8 @@ This document outlines the semester-long project for CIS 444/544 Data Analytics.
   * [Sprint 2: MongoDB, ETL, and DW Schemas](#sprint-2-mongodb-nosql-and-star-schemas)
   * [Sprint 3: Data Warehousing - Populating your Star Schemas](#sprint-3-data-warehousing---populating-your-star-schemas)
   * [Sprint 4: ETL Optimization, Visualization and New Data Integration](#sprint-4-etl-optimization-visualization-and-new-data-integration)
+  * [Sprint 5: Data Governance, ORM and Incremental Data Integration](#sprint-5-data-governance-orm-and-incremental-data-integration)
+  * [Sprint 6: Dashboard, Cleanup, Presentation, Conclusion](#sprint-6-dashboard-cleanup-presentation-conclusion)
 
 ## Scope
 
@@ -430,3 +432,141 @@ Add the following to your **final project portfolio**:
 * **New business questions** -- at least two documented questions leveraging the new data, with the documentation described above
 * **New star schema ERD** -- for your employee/payroll/amenity schema(s)
 * **Sprint documentation** -- sprint planning/retrospective notes and standup notes
+
+## Sprint 5: Data Governance, ORM and Incremental Data Integration
+
+Sprint 5 has two focus areas. First, you will build a **Data Governance Database (DGDB)** -- a small, separate database that tracks your ETL operations and data quality. Second, you will integrate **new source data** that will be added to your databases mid-sprint, using the incremental ETL techniques you developed in Sprint 4.
+
+This is an intentionally lighter sprint. You should use extra time to catch up on past deliverables; you can also use the time to begin working on your dashboard if you are already caught up -- dashboard development is the primary focus of Sprint 6, but getting a head start now will pay off.
+
+### Part 1: Data Governance Database (DGDB)
+
+In a production analytics environment, it isn't enough for your ETL to simply run -- you need to know *when* it ran, *what* it did, and *whether the data it produced is trustworthy*. The Data Governance Database is where you track this information.
+
+#### DGDB Setup
+
+Create a **new database** on your SQL Server instance for your DGDB. This database is separate from both your source databases and your data warehouse.
+
+Your DGDB should contain at minimum two tables:
+
+**ETL_Runs** -- logs each execution of your ETL pipeline:
+
+* Run ID (primary key)
+* ETL job name or description (which pipeline or stage ran)
+* Start date/time
+* End date/time or duration
+* Status (e.g., Success, Failure, Partial)
+* Records processed
+* Records rejected or skipped
+* Notes or error messages (optional -- a text field for capturing log output or error details)
+
+**Validation_Results** -- logs the outcomes of data quality checks:
+
+* Result ID (primary key)
+* Run ID (foreign key to ETL_Runs -- ties each validation to the ETL run that triggered it)
+* Rule name or identifier (a short, human-readable name for the check)
+* Rule description (plain English explanation of what the check verifies)
+* Date/time the check was executed
+* Records checked
+* Records passed
+* Records failed
+
+> [!TIP]
+> You're free to add additional columns or tables beyond what's listed here. For example, you might add a severity level to validation results, a separate table for detailed error records, or a lineage table that documents where each data warehouse table gets its data. The schema above is the minimum -- build what makes sense for your team.
+
+#### Validation Rules
+
+Implement **at least four validation rules** in your ETL code. Each rule should check a specific aspect of data quality, log its results to the `Validation_Results` table, and be associated with an ETL run.
+
+Your validation rules don't need to be stored *in* the database -- implement them directly in your ETL code. What matters is that the *results* are logged to the DGDB so you have a record of what was checked and what passed or failed.
+
+Your rules should cover at least one from each of the following categories:
+
+1. **Referential integrity in the data warehouse** -- verify that foreign keys in your fact tables have matching records in the corresponding dimension tables. For example: does every `property_key` in a fact table have a matching row in the property dimension?
+
+2. **Null/completeness checks** -- verify that critical business fields are populated. For example: no null customer names, no null transaction amounts, no null dates in fact records.
+
+3. **Date range coverage** -- verify that your date dimension table covers the full span of dates present in your fact tables. Are there any fact records referencing dates that don't exist in your date dimension?
+
+4. **Cross-source customer analysis** -- investigate the overlap between customers in your hotel operations database and your gift shop database. Since these two systems share *some* customers but use different IDs with no direct link, your task is to quantify the overlap: how many customers appear in both systems based on matching attributes like name and address? What percentage of gift shop customers are also hotel guests? Document your matching approach and its limitations.
+
+> [!NOTE]
+> The cross-source customer analysis is more of a **data quality investigation** than a pass/fail check. You're exploring the data to understand how well (or poorly) your two source systems align on customer identity. Log your findings to the DGDB -- for example, how many potential matches you found, what matching criteria you used, and what percentage of customers in each system had a match in the other.
+
+For each validation rule, document:
+
+1. **What it checks** (in plain English)
+2. **Why it matters** (what could go wrong if this check fails?)
+3. **How you implemented it** (brief description of the logic)
+
+#### ETL Integration
+
+Retrofit your existing ETL pipelines to log to the DGDB:
+
+* At the start of each ETL run, insert a record into `ETL_Runs`
+* As the ETL processes data, track record counts
+* After loading, execute your validation rules and log results to `Validation_Results`
+* At the end of the run, update the ETL run record with final status, duration, and counts
+
+> [!TIP]
+> You don't need to retrofit *every* ETL script you've written -- focus on your primary data warehouse ETL pipeline. If you have separate scripts for different star schemas, pick the one that's most complete and integrate DGDB logging there. You can extend to others as time permits.
+
+**Graduate students** should lead this task and should use an **Object-Relational Mapper (ORM)** for all interactions with the DGDB. This includes creating the DGDB tables (if you choose to use the ORM's table creation features), inserting ETL run records, logging validation results, and querying the DGDB.
+
+You may use any Python ORM:
+
+* **SQLAlchemy** (most common in industry)
+* **Peewee** (lightweight, good for smaller projects)
+* **Django ORM** (if you're familiar with Django)
+
+This is a practical application of ORMs: the DGDB tables are small, writes are infrequent, and the schema is simple -- exactly the use case where ORMs shine. Contrast this with your main ETL pipeline, where bulk loading millions of rows makes raw SQL and batch operations the better tool.
+
+Undergraduate students may use whatever database interaction method they're comfortable with (pyodbc, raw SQL, etc.) for the DGDB.
+
+### Part 2: New Data Integration
+
+Once the new source data is available, your hotel and gift shop databases will contain **additional records extending into 2025**. New customers may also appear in both systems. This new data will model *specific* business conditions and anomalies. These will be one or more of the following:
+
+* A month or similar time period of unusually high or low sales in one region or even one property
+* Customers may appear that have no records of stays or gift purchases
+* Evidence of an event that measurably changes the analytics (as an example, consider how COVID essentially shut down the hospitality industry overnight)
+* Anomalous transactions (e.g. someone might buy an unreasonable or unusually strange amount of products at the gift store, someone might stay in a resort for three months...)
+* Some properties may suddenly see increased or decreased popularity on certain weekdays
+* A property or even a whole region suddenly goes "offline" for a sizable amount of time - no reservations, no gift shop purchases, etc. 
+* Customer retention anomalies - frequent customers suddenly disappear, infrequent customers suddenly become very regular customers
+* Potential fraud - including *but not limited to*: some customers might check in and out the same day (comp abuse), some customers might show multiple attempts to pay on multiple cards (potential "card testing")
+* Financial anomalies or trends - including *but not limited to* a sudden bias in payment method usage at one property
+* Duplication of customers - some customers appear twice with slightly modified but still obviously similar data (e.g. the same customer appears as two entries, with addresses ending in `Street` and `St.`)
+
+Use your **incremental ETL pipeline** from Sprint 4 to integrate this new data into your existing data warehouse. Your incremental ETL should:
+
+* Detect the new records based on your metadata tracking approach
+* Process and load them into your existing star schemas
+* Extend your date dimension to cover any new date ranges
+* Log the incremental run to your DGDB (Part 1 of this sprint)
+
+> [!NOTE]
+> This is a practical test of the incremental ETL you designed in Sprint 4. If your incremental approach needs adjustments to handle the new data correctly, that's expected -- document what you changed and why in your sprint journal.
+
+If your Sprint 4 incremental ETL isn't fully working yet, this is your opportunity to finish it. A working incremental pipeline that processes the new data and logs to the DGDB is a strong deliverable.
+
+### Dashboard Development (Looking Ahead)
+
+Dashboard creation is the focus of Sprint 6, but if you finish the DGDB and incremental load with time to spare, **start working on your dashboard now**. Connect your visualization tool (Power BI or Python-based) to your data warehouse and begin building visuals for your business questions.
+
+You can also begin to consider the above noted potential anomalies or patterns in your new incoming data, and consider if you may want to add or change any of your business questions to accommodate those conditions. **You do NOT need to test or account for all possible anomalies** - each dataset will contain *many* (but not exactly the same) anomalies, so most business questions you have already come up with are likely to result in *measurable analytics outcomes* (this is one of the main "points" of analytics!).
+
+### Deliverables
+
+Add the following to your **final project portfolio**:
+
+* **DGDB schema** -- DDL scripts for creating your DGDB database and tables (or, for graduate students using an ORM, the model definitions that generate the tables)
+* **Validation rules documentation** -- for each rule: what it checks, why it matters, and how you implemented it. Include your cross-source customer analysis findings.
+* **Updated ETL code** -- your ETL pipeline(s) modified to log runs and validation results to the DGDB. Keep your previous ETL code as a historical artifact -- store updated code separately (new file or directory).
+* **DGDB evidence** -- screenshots or query output showing your DGDB tables populated with real ETL run and validation data
+* **Incremental ETL results** -- evidence that your pipeline successfully processed the new source data (e.g., before/after record counts, DGDB log entries for the incremental run)
+* **Sprint documentation** -- sprint planning/retrospective notes and standup notes
+
+## Sprint 6: Dashboard, Cleanup, Presentation, Conclusion
+
+TBD
