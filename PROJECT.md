@@ -11,8 +11,9 @@ This document outlines the semester-long project for CIS 444/544 Data Analytics.
   * [Sprint 3: Data Warehousing - Populating your Star Schemas](#sprint-3-data-warehousing---populating-your-star-schemas)
   * [Sprint 4: ETL Optimization, Visualization and New Data Integration](#sprint-4-etl-optimization-visualization-and-new-data-integration)
   * [Sprint 5: Data Governance, ORM and Incremental Data Integration](#sprint-5-data-governance-orm-and-incremental-data-integration)
-  * [Sprint 6: Dashboard, Cleanup, Presentation, Conclusion](#sprint-6-dashboard-cleanup-presentation-conclusion)
-
+  * [Sprint 6: Dashboard, Data Product, Presentation, and Project Wrap-Up](#sprint-6-dashboard-data-product-presentation-and-project-wrap-up)
+* **[Final Deliverable Package](#final-submission)**
+  
 ## Scope
 
 The goal for this project is to build a *comprehensive data analytics system* for a fictional organization. This project will consist of multiple components and skills:
@@ -567,6 +568,251 @@ Add the following to your **final project portfolio**:
 * **Incremental ETL results** -- evidence that your pipeline successfully processed the new source data (e.g., before/after record counts, DGDB log entries for the incremental run)
 * **Sprint documentation** -- sprint planning/retrospective notes and standup notes
 
-## Sprint 6: Dashboard, Cleanup, Presentation, Conclusion
+## Sprint 6: Dashboard, Data Product, Presentation, and Project Wrap-Up
 
-TBD
+Sprint 6 is the final sprint. Your focus is on three things: building the comprehensive analytics dashboard you'll present to the class, producing a curated data product from your data warehouse (a *data mart*), and preparing and delivering your final group presentation. You will also write individual retrospective reports and complete peer evaluations.
+
+This sprint is where everything comes together. The data warehouse you've built, the ETL pipelines you've refined, the business questions you've developed -- all of it feeds into a dashboard that tells the story of what your data reveals. You are also producing a deliverable that demonstrates a key concept in modern data analytics: *data as a product*.
+
+### Part 1: Analytics Dashboard
+
+Build **one comprehensive dashboard** that draws from your data warehouse and addresses the business questions you've developed throughout the project. This dashboard is the centerpiece of your final presentation -- it demonstrates the business value of the entire analytics infrastructure you've built.
+
+#### Dashboard Scope
+
+Your dashboard should be comprehensive. It should incorporate business questions and insights from across your query lists and star schemas -- not just one narrow slice of the data. Think of this as the dashboard that the hotel chain's leadership team would open every morning to understand the state of the business.
+
+You are welcome to revisit, revise, or add to your business questions at this stage. If you realize that your existing questions don't translate well into compelling visualizations, develop new ones. You may build additional star schemas or views in your data warehouse to support new questions if needed. You can design and run any additional ETL pipelines necessary, but please ensure to continue to use your DGDB database to log ETL runs and errors. Remember to provide *all* scripts you use in your final deliverables package.
+
+#### Dashboard Requirements
+
+Your dashboard must include:
+
+* **At least 6 visualizations** -- each should answer a specific business question or illuminate a meaningful pattern in the data. Don't create charts for the sake of meeting a count; every visualization should earn its place on the dashboard.
+* **At least 2 interactive visualizations** -- these must support parameterization that allows the viewer to update the visualization dynamically. Examples include drill-down capability (e.g., clicking a region to see property-level detail), date range selectors, slicers or filters that adjust what data is displayed, or dropdown parameters that change the metric being shown. Not every visualization needs interactivity -- some insights are best presented as a static view -- but at least two should respond to user input.
+* **KPI cards or summary metrics** -- high-level numbers that give an immediate snapshot of business health (e.g., total revenue, occupancy rate, average transaction value, year-over-year growth).
+* **Appropriate chart types** -- use the right visualization for the data. Time series data should use line or area charts. Categorical comparisons should use bar charts. Proportions should use pie or donut charts sparingly and only when there are few categories. Geographic data can use maps if your tool supports them. Avoid 3D charts.
+
+#### Visualization Quality
+
+Each visualization should:
+
+* Answer a clear business question that you can articulate in one sentence
+* Use an appropriate visualization to answer that business question
+* Use proper titles, axis labels, and legends based on the exact type of visualization used
+* Be interpretable at a glance by a non-technical viewer
+* Use consistent formatting and color schemes across the dashboard
+
+> [!TIP]
+> Think about your dashboard as a *story*, not a collection of unrelated charts. Group related visualizations together. Use layout and visual hierarchy to guide the viewer's attention. Consider what the first thing someone sees when they open the dashboard -- that should be the most important information.
+
+#### Computed Measures
+
+At least one visualization in your dashboard must use a **computed or derived measure** -- a value that is calculated rather than pulled directly from a column in your data warehouse. Examples include:
+
+* Year-over-year or month-over-month percentage change
+* Rolling or moving averages
+* Ratios such as revenue per room-night, labor cost as a percentage of revenue, or average gift shop spend per hotel guest
+* Occupancy rates derived from room inventory and check-in/check-out events
+* Customer retention or repeat-visit rates
+
+These calculated values are also useful to present as KPI cards/summary metrics.
+
+You may implement these computations as SQL views in your data warehouse, as calculated fields in your visualization tool (e.g., Power BI measures), or in Python if you're using a Python-based dashboard. Document what the computed measure is, how it's calculated, and which visualization uses it.
+
+> [!NOTE]
+> **Graduate students** should take the lead on designing and implementing computed measures. These are analytical calculations that go beyond simple aggregation -- they require thinking about what derived metrics would be most meaningful to business stakeholders and how to calculate them correctly.
+
+#### Technical Reminders
+
+* **Data connection:** Connect to your SQL Server data warehouse -- not directly to the source databases or MongoDB.
+* **Tool:** Use the visualization tool you selected in Sprint 4 (Power BI Desktop or a Python-based tool such as Streamlit or Plotly Dash). If you haven't committed to a tool yet, now is the time -- Power BI Desktop (Report Server edition) is recommended for most teams.
+* **Dashboard file:** Your dashboard file (`.pbix` for Power BI, or your Python source code for Python-based dashboards) is a graded deliverable and must be included in your final submission.
+
+### Part 2: Data Product -- Gift Shop Open Dataset
+
+Throughout this project, your data warehouse has served *your* analytical needs. But in practice, organizations also produce curated datasets intended for use by *others* -- business partners, researchers, or the general public. This is the concept of **data as a product**: a carefully prepared, documented dataset that has been extracted, cleaned, and shaped for a specific audience and purpose. This is what we refer to as a **data mart**.
+
+> Remember that a *data mart* is simply a curated, sharable dataset. Typically, data marts are used for many purposes - sharing authoritative data snapshots between departments, used directly to feed data warehouses, and sharing with the general public. It's not important who the audience is - a data mart is simply the "product" that audience receives.
+
+Think of sites like Kaggle, where you can find datasets on everything from Amazon product listings to airline delays. These datasets didn't appear out of thin air -- someone extracted them from production systems, removed sensitive information, selected the relevant subset of columns, and packaged them for public consumption. Decisions need to be made to ensure that published datasets serve their intended function but don't provide too much "insider knowledge" that competitors or malicious actors could abuse. For example, the Amazon product dataset on Kaggle includes product names, categories, prices, and ratings -- but it doesn't include who bought each product, how many units were sold, or any customer payment information. That's a deliberate editorial decision about what to include and what to exclude.
+
+Your task is to produce a similar artifact: a **gift shop open dataset** suitable for public release.
+
+#### Scenario
+
+Your hotel chain has decided to publish an open dataset of gift shop transaction data. This dataset will be made publicly available (imagine publishing it on Kaggle or a similar platform). The goal is to share useful retail transaction data with researchers, students, and analysts -- while protecting customer privacy.
+
+> **Note:** You should *not* actually publish your dataset online. Simply produce the dataset as described here and include it in your deliverables.
+
+#### Requirements
+
+Create a **new database** on your SQL Server instance (e.g., `GiftShopOpenDataset` or a name of your choosing) and use an ETL script to populate it. Your ETL should extract data from your existing data sources (your data warehouse, your MongoDB gift shop database, or both), transform it as described below, and load it into the new database.
+
+The dataset must:
+
+* **Include** gift shop transaction data: products, transaction details (dates, quantities, amounts), and product categories or similar organizational information
+* **Exclude all customer PII** -- no customer names, addresses, email addresses, phone numbers, or any other personally identifiable information. No customer-specific transaction linkage (i.e., you should not be able to determine that "customer X bought products Y and Z"). The dataset should contain *what was sold*, not *who bought it*. You should *not* be including customer IDs of any kind in transactions (you *can* include metadata such as transaction date/time and you *should* include the *property* the transaction occurred at - see next point - but do *NOT* include any customer link.)
+* **Include property-level context** -- transactions should be identifiable by property (or at minimum by region), so that analysts can compare gift shop performance across locations
+
+> [!IMPORTANT]
+> Think carefully about what "no PII" means in practice. Removing the customer name column isn't sufficient if you leave a customer ID that could be joined back to the source system. The dataset should stand alone -- someone downloading it should have no straightforward path back to individual customer identities, *even if they somehow gained access to the original full dataset*.
+
+#### Export
+
+Once your dataset database is populated, use SSMS to generate a **SQL script** of the database using the "Generate Scripts" wizard. Select the option to script both **schema and data**. This produces a self-contained `.sql` file that anyone could use to recreate your dataset on their own SQL Server instance -- exactly the kind of artifact you'd publish alongside a dataset on Kaggle or a data sharing platform. Don't worry about the size of the file - it is likely to be large - you may ZIP it for inclusion in your submission package. 
+
+> [!TIP]
+> In SSMS: right-click your database → Tasks → Generate Scripts. Walk through the wizard, selecting all tables. In the "Set Scripting Options" step, click "Advanced" and set "Types of data to script" to **Schema and Data**. Save to a single `.sql` file.
+
+Include this `.sql` file in your final submission.
+
+#### Data Card
+
+Create a brief `README.md` file to accompany your dataset. This is your **data card** -- the documentation that a user of your dataset would read to understand what they're working with. It should include:
+
+* A short description of the dataset (what it contains, where it came from, what time period it covers)
+* A list of tables and their columns, including data types and brief descriptions
+* Any notes on limitations, known issues, or caveats (e.g., "transaction amounts are in USD," "data covers January 2024 through June 2025")
+
+This doesn't need to be long -- a page or two is sufficient. The goal is that someone encountering your dataset for the first time could read the README and understand what they have.
+
+### Part 3: Final Presentation
+
+Each group will deliver a **final presentation** during presentation week. You are presenting to a mixed audience of **executives and data analysts** -- your presentation should be accessible to non-technical viewers while also demonstrating the technical depth of your work.
+
+#### Logistics
+
+* **Time limit:** 15 minutes maximum (hard cutoff). Target **12 minutes** to leave time for brief questions and transition to the next group.
+* **Format:** PowerPoint presentation with a live dashboard demonstration.
+* **The PowerPoint file is a graded deliverable** and must be included in your final submission.
+
+#### Required Elements
+
+You should assume that you have a *combined audience* of business stakeholders and data science workers. Therefore, you *can* and *should* discuss some of the technical aspects of your implementation (you can discuss ETL, star schemas, etc.) but you should avoid unnecessary verbosity on specifics of the technical implementation (e.g. you should not show SQL queries and dive into their complexity, discuss specific programming techniques or workaround, etc.) The focus here is on *people who care about the data you're producing* - they don't necessarily care about the internals.
+
+Your presentation must cover the following. You are free to structure and order these however you think is most effective -- there is no prescribed slide sequence.
+
+* **Business context** -- briefly orient the audience: what organization are you analyzing, what does it do, and what questions did you set out to answer?
+* **Data architecture overview** -- give the audience a high-level understanding of your data pipeline: where data comes from (source systems), how it flows through your warehouse (ETL), and how it reaches the dashboard. This doesn't need to be deeply technical -- a simple architecture diagram or data flow visual is effective here.
+* **Dashboard demonstration** -- show your dashboard live. Walk through your key visualizations, demonstrate the interactive features, and highlight the insights your dashboard surfaces. This is the centerpiece of the presentation.
+* **Key findings** -- what did you discover in the data? What patterns, anomalies, or insights did your analysis reveal? What would you recommend to the hotel chain's leadership based on what you found?
+* **Data product** -- briefly describe the open dataset you produced: what's in it, what was excluded and why, and how it could be used by others.
+* **Reflection** -- what went well, what was challenging, and what would you do differently if starting over?
+
+> [!TIP]
+> **Presenting a dashboard live** can be tricky -- small text and complex visuals don't always project well. Consider zooming in on specific visualizations as you discuss them, or including screenshots or a video of key visuals in your slides as a backup. Make sure your dashboard is connected and working *before* your presentation slot.
+
+> [!NOTE]
+> With 7 groups and 110 minutes of class time, the 15-minute cap is strict. Practice your presentation and time it. A well-rehearsed 12-minute presentation is far more effective than a rushed 15-minute one that gets cut off. You may want to designate a timekeeper in your group. During presentations I can give a signal at 10 minutes to let you know it's time to start wrapping up.
+
+### Part 4: Individual Deliverables
+
+Sprint 6 includes individual deliverables in addition to your group work. These are how individual contributions and learning are assessed separately from the group grade. There will be separate dropboxes on D2L for these individual submissions - **DO NOT** include any individual submissions listed here in your final deliverables package!!
+
+#### Individual Written Reports
+
+Each individual team member will submit **two short written reports** (1-2 pages each):
+
+**Project Retrospective** -- reflect on the project as a whole from your individual perspective:
+
+* What did you learn over the course of the project? What skills or concepts were new to you?
+* What aspects of the project were most challenging? How did you work through those challenges?
+* What would you do differently if you were starting the project over with what you know now?
+* How has this project changed how you think about data analytics as a discipline?
+
+**Group Retrospective** -- reflect on how your team worked together:
+
+* How did your team divide work and make decisions?
+* What worked well about your team's process? What didn't?
+* How did your team handle disagreements, setbacks, or situations where someone fell behind?
+* What would you change about how the team operated?
+
+> [!IMPORTANT]
+> These are *individual* reports -- each team member writes their own. They should reflect your personal experience and perspective, not be a copy of a shared document. Write honestly; these reports are not shared with your teammates. This is your chance to informally assess your teammates.
+
+#### Peer Evaluation
+
+You will complete an **anonymous peer evaluation** for each member of your group. This will be administered as a survey through D2L -- details and the link will be provided separately. The peer evaluation asks you to assess each teammate's contributions, reliability, and collaboration. Your responses are confidential and are used to inform individual grading adjustments. This will occur near the end of Sprint 6. Details will be announced in class.
+
+## Final Submission
+
+Your final project portfolio is due during finals week, at 11:59PM on the day that final presentations are given (May 4th). Submit either a **zip file** or provide **read access to a shared directory** (e.g., OneDrive) containing your complete project portfolio. 
+
+> [!IMPORTANT]
+> **YOU ARE RESPONSIBLE FOR ENSURING THAT I HAVE ACCESS TO YOUR SHARED FOLDER** should you decide to share a OneDrive or other shared cloud folder link. You MUST grant permission to `flint.million.2@mnsu.edu` to read the directory.
+>
+> As a courtesy, I will check group final submissions on Tuesday, May 5th and inform you if I have trouble accessing your submission. I will notify you *once* to resolve the issue with access and will give you an additional 24 hours to resolve the issue. **If I am still unable to access your final deliverables as of Thursday, May 8th, and you have not resolved the issue, YOUR GROUP WILL RECEIVE A SUBSTANTIAL PENALTY which will adversely affect the grade of ALL group members.**
+
+Your submission should include all deliverables from across the entire project. Below is the complete list, organized by sprint. Use this as a checklist.
+
+### Sprint 1: Discovery
+
+* ERD diagram for the hotel operations database
+* Data dictionary documenting all tables, columns, data types, and descriptions
+* Team documentation (members, roles, project management platform, meeting plan)
+* Query List 1 -- discovery queries with business questions, SQL, and interpretations
+* Unanswerable questions -- at least two, with explanation of what's missing
+* Sprint documentation (standup notes, sprint planning, retrospective)
+
+### Sprint 2: MongoDB, ETL, and Star Schemas
+
+* ERD for MongoDB `hotel` database
+* Query List 2 -- MongoDB aggregation queries
+* ETL tool source code for SQL Server to MongoDB migration
+* Index descriptions and/or code for MongoDB performance optimization
+* Star schema ERDs (at least two)
+* SQL code for data warehouse table creation
+* Sprint documentation
+
+### Sprint 3: Data Warehousing
+
+* Date dimension table DDL and/or ETL code
+* Python ETL pipeline source code for populating star schemas
+* Written explanation of data flow strategy
+* Cross-source business questions (at least two, documented)
+* New cross-source star schema ERD
+* Query List 3 -- data warehouse queries
+* Sprint documentation
+
+### Sprint 4: ETL Optimization, Visualization, and New Data
+
+* ETL optimization documentation (before/after benchmarks, changes made)
+* Visualization proof-of-concept screenshot
+* Updated ERD including employee, payroll, and amenity entities
+* Incremental ETL pipeline source code with metadata tracking mechanism
+* Written explanation of incremental ETL approach
+* New business questions leveraging employee/payroll data (at least two)
+* New star schema ERD for employee/payroll/amenity data
+* Sprint documentation
+
+### Sprint 5: Data Governance and Incremental Data Integration
+
+* DGDB schema -- DDL scripts or ORM model definitions
+* Validation rules documentation (what each checks, why it matters, how implemented)
+* Updated ETL code with DGDB logging integration
+* DGDB evidence -- screenshots or query output showing populated ETL run and validation data
+* Incremental ETL results -- evidence of successful new data processing
+* Sprint documentation
+
+### Sprint 6: Dashboard, Data Product, and Presentation
+
+* **Dashboard file** -- `.pbix` file (Power BI) or Python source code (Streamlit/Plotly Dash)
+* **Dashboard documentation** -- for each visualization: the business question it answers and the data source it uses. For computed measures: what the measure is and how it's calculated.
+* **Gift shop open dataset** -- the exported `.sql` script from SSMS (schema and data)
+* **Data card** -- `README.md` documenting the open dataset
+* **ETL code** for populating the open dataset database
+* **PowerPoint file** -- the slide deck used for your final presentation
+* **Individual project retrospective** (1-2 pages, submitted individually)
+* **Individual group retrospective** (1-2 pages, submitted individually)
+* Sprint documentation (sprint planning, standup notes, final retrospective)
+
+You do not need to separate all documents by sprint. For example, a single Sprint Documentation file is fine if it includes all sprints.
+
+> [!NOTE]
+> The peer evaluation is completed separately through D2L and is **not** included in your portfolio submission.
+
+> [!TIP]
+> **Organization matters.** A well-organized submission is easier to grade and reflects well on your team's professionalism. Consider organizing your submission into directories by sprint or by artifact type. Include a top-level `README` or `INDEX` file that describes where to find each deliverable. If files have non-obvious names, rename them or add descriptions.
+
+This concludes the final project for Data Analytics! I hope you've had a great semester and I wish you all the best of luck in your future endeavors. If you ever want to reach out to me for any reason, don't hesitate to E-mail me at `flint.million.2@mnsu.edu`. 
